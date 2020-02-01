@@ -13,16 +13,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        guard let _ = (scene as? UIWindowScene) else { return }
-        
-        setupInitialViewController()
-    }
+        guard let windowScene = (scene as? UIWindowScene) else { return }
     
-    private func setupInitialViewController() {
-        let window = UIWindow(frame: UIScreen.main.bounds)
+        let window = UIWindow(windowScene: windowScene)
         
         window.rootViewController = QuizViewController()
         window.makeKeyAndVisible()
+        
+        self.window = window
     }
 
 }
