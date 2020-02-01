@@ -10,5 +10,20 @@ import UIKit
 
 class QuizViewController: UIViewController {
     
+    //MARK: - Outlets
+    
+    @IBOutlet weak var questionLabel: UILabel!
+    @IBOutlet weak var textField: UITextField!
+    @IBOutlet weak var tableView: UITableView!
+    
+    //MARK: - Life Cycle
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        
+    }
+    
+    //MARK: - Private Functions
     
 }
