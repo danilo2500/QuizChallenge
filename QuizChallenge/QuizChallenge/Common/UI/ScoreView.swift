@@ -9,24 +9,40 @@
 import UIKit
 
 protocol ScoreViewDelegate: class {
-    func scoreView(_ scoreView: ScoreView, didTapButton button: UIButton)
+    func scoreViewDidReset(_ scoreView: ScoreView)
+    func scoreViewDidStart(_ scoreView: ScoreView)
     func scoreViewTimerDidFinish(_ scoreView: ScoreView)
+    func scoreViewDidCompletePoints(_ scoreView: ScoreView)
 }
 
 class ScoreView: UIView {
     
     weak var delegate: ScoreViewDelegate?
     
-    var maximumTime = TimeInterval(60*5)
+    var maximumTime = TimeInterval(60*5) {
+        didSet {
+            updateTimerLabel(with: maximumTime)
+        }
+    }
+    var maximumPoints = 0 {
+        didSet {
+            updateScore()
+        }
+    }
+    var currentPoints = 0 {
+        didSet{
+            updateScore()
+        }
+    }
     
-    //MARK: - Private Variables
+    //MARK: - Variables
     
     private(set) var timeLeft = TimeInterval(0)
     private var timer = Timer()
     
     //MARK: - UI Elements
     
-    lazy var scoreLabel: UILabel = {
+    private lazy var scoreLabel: UILabel = {
         let label = UILabel()
         
         label.textColor = .black
@@ -55,10 +71,11 @@ class ScoreView: UIView {
         return stackView
     }()
     
-    lazy var button: MainButton = {
+    private lazy var button: MainButton = {
         let button = MainButton()
         
         button.addTarget(self, action: #selector(didTapButton), for: .touchUpInside)
+        button.setTitle("Start", for: .normal)
         
         return button
     }()
@@ -71,19 +88,6 @@ class ScoreView: UIView {
         
         return stackView
     }()
-    
-    //MARK: - Functions
-    
-    func startTimer() {
-        updateTimerLabel(with: maximumTime)
-        timeLeft = maximumTime
-        
-        timer.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            self.timerDidTick()
-        }
-    }
     
     //MARK: - Object LifeCycle
     
@@ -116,6 +120,17 @@ class ScoreView: UIView {
         mainStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16).isActive = true
     }
     
+    func startTimer() {
+        updateTimerLabel(with: maximumTime)
+        timeLeft = maximumTime
+        
+        timer.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            self.timerDidTick()
+        }
+    }
+    
     private func timerDidTick() {
         self.timeLeft = self.timeLeft.advanced(by: -1)
         
@@ -130,13 +145,37 @@ class ScoreView: UIView {
     private func updateTimerLabel(with timeInterval: TimeInterval) {
         let dateComponentsFormatter = DateComponentsFormatter()
         dateComponentsFormatter.allowedUnits = [.minute, .second]
+        dateComponentsFormatter.zeroFormattingBehavior = .pad
         
         let textFormatted = dateComponentsFormatter.string(from: timeInterval)
         
         timerLabel.text = textFormatted
     }
     
+    private func updateScore() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.minimumIntegerDigits = 2
+
+        let maximumPointsText = numberFormatter.string(from: NSNumber(value: maximumPoints)) ?? "-"
+        let currentPointsText = numberFormatter.string(from: NSNumber(value: currentPoints)) ?? "-"
+        
+        scoreLabel.text = currentPointsText + "/" + maximumPointsText
+        
+        if currentPointsText >= maximumPointsText {
+            timer.invalidate()
+            delegate?.scoreViewDidCompletePoints(self)
+        }
+    }
+    
     @objc private func didTapButton() {
-        delegate?.scoreView(self, didTapButton: button)
+        button.setTitle("Reset", for: .normal)
+        
+        if timer.isValid {
+            currentPoints = 0
+            delegate?.scoreViewDidReset(self)
+        } else {
+            delegate?.scoreViewDidStart(self)
+        }
+        startTimer()
     }
 }

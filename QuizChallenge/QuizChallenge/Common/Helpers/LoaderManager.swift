@@ -14,25 +14,19 @@ class LoaderManager {
     
     private init() {}
     
-    func showLoading() {
-        guard let window = UIApplication.shared.windows.last else { return }
-        guard let rootViewController = window.rootViewController else { return }
-        
-        let loaderView = LoaderView(frame: window.frame)
-        rootViewController.view.addSubview(loaderView)
+    func showLoading(on view: UIView) {
+        let loaderView = LoaderView(frame: view.frame)
+        view.addSubview(loaderView)
         
         loaderView.translatesAutoresizingMaskIntoConstraints = false
-        loaderView.topAnchor.constraint(equalTo: rootViewController.view.topAnchor).isActive = true
-        loaderView.bottomAnchor.constraint(equalTo: rootViewController.view.bottomAnchor).isActive = true
-        loaderView.leadingAnchor.constraint(equalTo: rootViewController.view.leadingAnchor).isActive = true
-        loaderView.trailingAnchor.constraint(equalTo: rootViewController.view.trailingAnchor).isActive = true
+        loaderView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        loaderView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
+        loaderView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
+        loaderView.trailingAnchor.constraint(equalTo: view.trailingAnchor).isActive = true
     }
     
-    func dismissLoading() {
-        guard let window = UIApplication.shared.windows.last else { return }
-        guard let rootViewController = window.rootViewController else { return }
-        
-        let loaderViews = rootViewController.view.subviews.filter({$0 is LoaderView})
+    func dismissLoading(on view: UIView) {
+        let loaderViews = view.subviews.filter({$0 is LoaderView})
         loaderViews.forEach({$0.removeFromSuperview()})
     }
 }

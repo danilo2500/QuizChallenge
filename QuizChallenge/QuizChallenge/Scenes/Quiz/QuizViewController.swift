@@ -19,7 +19,9 @@ class QuizViewController: UIViewController {
     var router: (NSObjectProtocol & QuizRoutingLogic & QuizDataPassing)?
     
     //MARK: - Constants
-    let cellIdentifier = String(describing: UITableViewCell.self)
+    
+    private let cellIdentifier = String(describing: UITableViewCell.self)
+    private let maximumTime = TimeInterval(60*5)
     
     //MARK: - Outlets
     
@@ -51,6 +53,7 @@ class QuizViewController: UIViewController {
         didSet {
             scoreView.isHidden = true
             scoreView.delegate = self
+            scoreView.maximumTime = maximumTime
         }
     }
     @IBOutlet weak var scoreViewBottomConstraint: NSLayoutConstraint!
@@ -109,36 +112,63 @@ class QuizViewController: UIViewController {
         let keyboardUserInfo = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue
         guard let keyboardHeight = keyboardUserInfo?.cgRectValue.height else { return }
         
-//        UIView.animate(withDuration: 0.3) {
-            if notification.name == UIResponder.keyboardWillShowNotification || notification.name == UIResponder.keyboardWillChangeFrameNotification {
-                self.scoreViewBottomConstraint.constant = keyboardHeight
-            } else {
-                self.scoreViewBottomConstraint.constant = 0
-            }
-//        }
+        if notification.name == UIResponder.keyboardWillShowNotification || notification.name == UIResponder.keyboardWillChangeFrameNotification {
+            self.scoreViewBottomConstraint.constant = keyboardHeight
+        } else {
+            self.scoreViewBottomConstraint.constant = 0
+        }
+        view.layoutIfNeeded()
     }
     
     private func requestQuizData() {
-        LoaderManager.shared.showLoading()
+        LoaderManager.shared.showLoading(on: view)
         
         let request = Quiz.RequestQuiz.Request()
         interactor?.requestQuiz(request: request)
     }
     
-    private func updateScore() {
-        let numberFormatter = NumberFormatter()
-        numberFormatter.minimumIntegerDigits = 2
-
-        let correctAnswersText = numberFormatter.string(from: NSNumber(value: correctAnswers.count)) ?? ""
-        let totalAnwsersText = numberFormatter.string(from: NSNumber(value: answers.count)) ?? ""
-        scoreView.scoreLabel.text = correctAnswersText + "/" + totalAnwsersText
+    private func startGame() {
+        textField.isEnabled = true
+        textField.becomeFirstResponder()
+        
+        correctAnswers.removeAll()
+        tableView.reloadData()
+        
+        scoreView.currentPoints = 0
+        scoreView.startTimer()
     }
     
-    private func startGame() {
-        correctAnswers.removeAll()
-        textField.isEnabled = true
-        tableView.reloadData()
-        scoreView.startTimer()
+    private func showPlayerWinAlert() {
+        let title = "Congratilations"
+        let message = "Good job! You found all the answers on time. Keep up with the great work"
+        let actionTitle = "Play Again"
+        
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        let playAgainAction = UIAlertAction(title: actionTitle, style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.startGame()
+        }
+        
+        alert.addAction(playAgainAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    private func showPlayerLostAlert() {
+        let title = "Time Finished"
+        let message = "Sorry, time is up! You got \(correctAnswers.count) out of \(answers.count) answers."
+        let actionTitle = "Try Again"
+        
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        let playAgainAction = UIAlertAction(title: actionTitle, style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.startGame()
+        }
+        alert.addAction(playAgainAction)
+        
+        present(alert, animated: true, completion: nil)
     }
     
     //MARK: - IBActions
@@ -150,12 +180,11 @@ class QuizViewController: UIViewController {
             correctAnswers.insert(text, at: 0)
             
             tableView.beginUpdates()
-            let indexPath = IndexPath(row: 0, section: 0)
-            tableView.insertRows(at: [indexPath], with: .automatic)
+            tableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
             tableView.endUpdates()
             
             textField.text = nil
-            updateScore()
+            scoreView.currentPoints = correctAnswers.count
         }
     }
 }
@@ -165,24 +194,20 @@ class QuizViewController: UIViewController {
 extension QuizViewController: QuizDisplayLogic {
     
     func displayQuiz(viewModel: Quiz.RequestQuiz.ViewModel) {
-        LoaderManager.shared.dismissLoading()
-        
-        answers = viewModel.answers
+        LoaderManager.shared.dismissLoading(on: view)
         
         stackView.isHidden = false
-        
-        questionLabel.text = viewModel.question
-        
         scoreView.isHidden = false
-        updateScore()
-        scoreView.button.setTitle("Start", for: .normal)
+        
+        answers = viewModel.answers
+        questionLabel.text = viewModel.question
+        scoreView.maximumPoints = answers.count
     }
     
     func displayError() {
-        LoaderManager.shared.dismissLoading()
+        LoaderManager.shared.dismissLoading(on: view)
         
-        let alert = UIAlertController(title: "Error", message: "An unexpected error has occurred while fetching data.", preferredStyle: .alert)
-        
+        let alert = UIAlertController(title: "Error", message: "An unexpected error has occurred.", preferredStyle: .alert)
         let tryAgainAction = UIAlertAction(title: "Try Again", style: .default) { [weak self] _ in
             guard let self = self else { return }
             self.requestQuizData()
@@ -202,9 +227,7 @@ extension QuizViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
-        
         cell.textLabel?.text = correctAnswers[indexPath.row]
-        
         return cell
     }
 }
@@ -212,33 +235,27 @@ extension QuizViewController: UITableViewDataSource {
 //MARK: - ScoreView Delegate
 
 extension QuizViewController: ScoreViewDelegate {
+    func scoreViewDidReset(_ scoreView: ScoreView) {
+        startGame()
+    }
+    
+    func scoreViewDidStart(_ scoreView: ScoreView) {
+        startGame()
+    }
+    
+    func scoreViewDidCompletePoints(_ scoreView: ScoreView) {
+        textField.isEnabled = false
+        showPlayerWinAlert()
+    }
+    
     func scoreViewTimerDidFinish(_ scoreView: ScoreView) {
         let playerIsWinner = correctAnswers.count == answers.count
         
-        var title = ""
-        var message = ""
         if playerIsWinner {
-            title = "Congratilations"
-            message = "Good job! You found all the answers on time. Keep up with the great work"
+            showPlayerWinAlert()
         } else {
-            title = "Time Finished"
-            message = "Sorry, time is up! You got \(correctAnswers.count) out of \(answers.count) answers."
+            showPlayerLostAlert()
         }
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        
-        let actionTitle = playerIsWinner ? "Play Again" : "Try Again"
-        let playAgainAction = UIAlertAction(title: actionTitle, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            self.startGame()
-        }
-        alert.addAction(playAgainAction)
-        
-        present(alert, animated: true, completion: nil)
     }
     
-    func scoreView(_ scoreView: ScoreView, didTapButton button: UIButton) {
-        textField.isEnabled = true
-        textField.becomeFirstResponder()
-        scoreView.startTimer()
-    }
 }
