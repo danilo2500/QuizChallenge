@@ -76,6 +76,10 @@ class ScoreView: UIView {
         
         button.addTarget(self, action: #selector(didTapButton), for: .touchUpInside)
         button.setTitle("Start", for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        let heightConstraint = button.heightAnchor.constraint(equalToConstant: 55)
+        heightConstraint.priority = .defaultLow
+        heightConstraint.isActive = true
         
         return button
     }()
