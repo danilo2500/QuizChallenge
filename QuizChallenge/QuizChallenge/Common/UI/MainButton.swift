@@ -10,6 +10,10 @@ import UIKit
 
 class MainButton: UIButton {
     
+    //MARK: - Constants
+    
+    private let height: CGFloat = 55
+    
     //MARK: - Object LifeCycle
     
     override init(frame: CGRect) {
@@ -26,6 +30,14 @@ class MainButton: UIButton {
     
     private func setupUI() {
         backgroundColor = MainColors.orange
-        layer.cornerRadius = 16
+        titleLabel?.font = MainFonts.button
+        layer.cornerRadius = 6
+        
+        setupConstraints()
+    }
+    
+    private func setupConstraints() {
+        translatesAutoresizingMaskIntoConstraints = false
+        heightAnchor.constraint(equalToConstant: height).isActive = true
     }
 }

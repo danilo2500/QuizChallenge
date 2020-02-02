@@ -33,7 +33,11 @@ class QuizViewController: UIViewController {
             questionLabel.font = MainFonts.largeTitle
         }
     }
-    @IBOutlet weak var textField: UITextField!
+    @IBOutlet weak var textField: UITextField! {
+        didSet {
+            textField.isEnabled = false
+        }
+    }
     @IBOutlet weak var tableView: UITableView! {
         didSet {
             tableView.dataSource = self
@@ -42,6 +46,12 @@ class QuizViewController: UIViewController {
             tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
         }
         
+    }
+    @IBOutlet weak var scoreView: ScoreView! {
+        didSet {
+            scoreView.isHidden = true
+            scoreView.delegate = self
+        }
     }
     
     //MARK: - Private Variables
@@ -105,10 +115,25 @@ class QuizViewController: UIViewController {
             tableView.endUpdates()
             
             textField.text = nil
+            updateScore()
         }
     }
     
+    private func updateScore() {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.minimumIntegerDigits = 2
+
+        let correctAnswersText = numberFormatter.string(from: NSNumber(value: correctAnswers.count)) ?? ""
+        let totalAnwsersText = numberFormatter.string(from: NSNumber(value: answers.count)) ?? ""
+        scoreView.scoreLabel.text = correctAnswersText + "/" + totalAnwsersText
+    }
     
+    private func startGame() {
+        correctAnswers.removeAll()
+        textField.isEnabled = true
+        tableView.reloadData()
+        scoreView.startTimer()
+    }
 }
 
 //MARK: - Display Logic
@@ -118,10 +143,15 @@ extension QuizViewController: QuizDisplayLogic {
     func displayQuiz(viewModel: Quiz.RequestQuiz.ViewModel) {
         LoaderManager.shared.dismissLoading()
         
+        answers = viewModel.answers
+        
         stackView.isHidden = false
         
         questionLabel.text = viewModel.question
-        answers = viewModel.answers
+        
+        scoreView.isHidden = false
+        updateScore()
+        scoreView.button.setTitle("Start", for: .normal)
     }
     
     func displayError() {
@@ -152,5 +182,37 @@ extension QuizViewController: UITableViewDataSource {
         cell.textLabel?.text = correctAnswers[indexPath.row]
         
         return cell
+    }
+}
+
+//MARK: - ScoreView Delegate
+
+extension QuizViewController: ScoreViewDelegate {
+    func scoreViewTimerDidFinish(_ scoreView: ScoreView) {
+        let playerIsWinner = correctAnswers.count == answers.count
+        
+        var title = ""
+        var message = ""
+        if playerIsWinner {
+            title = "Congratilations"
+            message = "Good job! You found all the answers on time. Keep up with the great work"
+        } else {
+            title = "Time Finished"
+            message = "Sorry, time is up! You got \(correctAnswers.count) out of \(answers.count) answers."
+        }
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+        let actionTitle = playerIsWinner ? "Play Again" : "Try Again"
+        let playAgainAction = UIAlertAction(title: actionTitle, style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.startGame()
+        }
+        alert.addAction(playAgainAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    func scoreView(_ scoreView: ScoreView, didTapButton button: UIButton) {
+        scoreView.startTimer()
     }
 }
