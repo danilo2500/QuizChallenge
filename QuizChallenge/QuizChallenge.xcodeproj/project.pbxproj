@@ -193,11 +193,11 @@
 				55093CC023E6574C0011EBAC /* Manager */,
 				553E7B4423E6082600330770 /* QuizViewController.swift */,
 				55956E9D23E66EC500CB5E29 /* QuizModels.swift */,
-				553E7B4623E6083700330770 /* QuizViewController.xib */,
 				55093CBC23E654FB0011EBAC /* QuizPresenter.swift */,
 				55956E9A23E66E7A00CB5E29 /* QuizInteractor.swift */,
 				55956EA123E6715200CB5E29 /* QuizRouter.swift */,
 				55093CBE23E6571F0011EBAC /* QuizWorker.swift */,
+				553E7B4623E6083700330770 /* QuizViewController.xib */,
 			);
 			path = Quiz;
 			sourceTree = "<group>";

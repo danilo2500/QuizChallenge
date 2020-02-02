@@ -19,8 +19,12 @@ protocol QuizDataStore {
 
 class QuizInteractor: QuizBusinessLogic, QuizDataStore {
     
+    //MARK: - Variables
+    
     var presenter: QuizPresentationLogic?
     var worker = QuizWorker(manager: QuizAPIManager())
+    
+    //MARK: - Business Logic
     
     func requestQuiz(request: Quiz.RequestQuiz.Request) {
         worker.requestQuiz { [weak self] (result) in

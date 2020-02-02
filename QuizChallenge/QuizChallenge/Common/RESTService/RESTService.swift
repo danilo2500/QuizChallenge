@@ -11,11 +11,12 @@ import Foundation
 class RESTService<T: RESTRequest>{
     
     func request<U: Decodable>(_ request: T, completion: @escaping (Result<U, Error>) -> Void ) {
-        let url = URL(fileURLWithPath: request.endpoint)
+        let url = request.baseURL.appendingPathComponent(request.endpoint)
         
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = request.httpMethod.rawValue
-            
+        urlRequest.timeoutInterval = 10
+        
         URLSession.shared.dataTask(with: urlRequest) { (data, response, error) in
             if let data = data {
                 do {
@@ -28,6 +29,6 @@ class RESTService<T: RESTRequest>{
             if let error = error {
                 completion(.failure(error))
             }
-        }
+        }.resume()
     }
 }

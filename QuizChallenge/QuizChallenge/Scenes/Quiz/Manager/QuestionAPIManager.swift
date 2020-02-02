@@ -9,9 +9,15 @@
 import Foundation
 
 class QuizAPIManager: QuizWorkerManager {
+    
     func getQuiz(completion: @escaping (Result<QuizModel, Error>) -> Void) {
+
         let restService = RESTService<QuizAPI>()
         
-        restService.request(.getQuiz, completion: completion)
+        restService.request(.getQuiz) { (result) in
+            DispatchQueue.main.async {
+                completion(result)
+            }
+        }
     }
 }

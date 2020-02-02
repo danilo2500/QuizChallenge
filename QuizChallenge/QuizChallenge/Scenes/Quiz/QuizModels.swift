@@ -17,7 +17,8 @@ enum Quiz {
             let quiz: QuizModel
         }
         struct ViewModel {
-            
+            let question: String
+            let answers: [String]
         }
     }
 }

@@ -13,13 +13,25 @@ protocol QuizPresentationLogic {
 }
 
 class QuizPresenter: QuizPresentationLogic {
+    
     weak var viewController: QuizDisplayLogic?
     
+    //MARK: - Presentation Logic
+    
     func presentQuiz(response: Quiz.RequestQuiz.Response) {
+        let quiz = response.quiz
         
+        let question = quiz.question ?? "-"
+        guard let answers = quiz.answer else {
+            presentError()
+            return
+        }
+        
+        let viewModel = Quiz.RequestQuiz.ViewModel(question: question, answers: answers)
+        viewController?.displayQuiz(viewModel: viewModel)
     }
     func presentError() {
-        
+        viewController?.displayError()
     }
     
 }

@@ -15,16 +15,18 @@ protocol QuizDisplayLogic: class {
 
 class QuizViewController: UIViewController {
     
+    var interactor: QuizBusinessLogic?
+    var router: (NSObjectProtocol & QuizRoutingLogic & QuizDataPassing)?
+    
     //MARK: - Outlets
     
     @IBOutlet weak var questionLabel: UILabel!
     @IBOutlet weak var textField: UITextField!
     @IBOutlet weak var tableView: UITableView!
     
-    //MARK: - Variables
+    //MARK: - Private Variables
     
-    var interactor: QuizBusinessLogic?
-    var router: (NSObjectProtocol & QuizRoutingLogic & QuizDataPassing)?
+    var answers: [String] = []
     
     // MARK: Object lifecycle
     
@@ -58,7 +60,7 @@ class QuizViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        requestQuestionData()
+        requestQuizData()
     }
     
     //MARK: - Private Functions
@@ -72,13 +74,19 @@ class QuizViewController: UIViewController {
     
 }
 
+//MARK: - Display Logic
+
 extension QuizViewController: QuizDisplayLogic {
     
     func displayQuiz(viewModel: Quiz.RequestQuiz.ViewModel) {
+        LoaderManager.shared.dismissLoading()
         
+        questionLabel.text = viewModel.question
+        answers = viewModel.answers
     }
     
     func displayError() {
+        LoaderManager.shared.dismissLoading()
         
     }
 }
