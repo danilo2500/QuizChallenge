@@ -20,13 +20,18 @@ class QuizViewController: UIViewController {
     
     //MARK: - Outlets
     
+    @IBOutlet weak var stackView: UIStackView! {
+        didSet {
+            stackView.isHidden = true
+        }
+    }
     @IBOutlet weak var questionLabel: UILabel!
     @IBOutlet weak var textField: UITextField!
     @IBOutlet weak var tableView: UITableView!
     
     //MARK: - Private Variables
     
-    var answers: [String] = []
+    private var answers: [String] = []
     
     // MARK: Object lifecycle
     
@@ -72,6 +77,15 @@ class QuizViewController: UIViewController {
         interactor?.requestQuiz(request: request)
     }
     
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+        alert.addAction(okAction)
+        present(alert, animated: true, completion: nil)
+    }
+    @IBAction func textFieldDidChangeEditing(_ sender: Any) {
+        
+    }
 }
 
 //MARK: - Display Logic
@@ -81,6 +95,8 @@ extension QuizViewController: QuizDisplayLogic {
     func displayQuiz(viewModel: Quiz.RequestQuiz.ViewModel) {
         LoaderManager.shared.dismissLoading()
         
+        stackView.isHidden = false
+        
         questionLabel.text = viewModel.question
         answers = viewModel.answers
     }
@@ -88,5 +104,14 @@ extension QuizViewController: QuizDisplayLogic {
     func displayError() {
         LoaderManager.shared.dismissLoading()
         
+        let alert = UIAlertController(title: "Error", message: "An unexpected error has occurred", preferredStyle: .alert)
+        
+        let tryAgainAction = UIAlertAction(title: "Try Again", style: .default) { [weak self] _ in
+            guard let self = self else { return }
+            self.requestQuizData()
+        }
+        alert.addAction(tryAgainAction)
+        
+        present(alert, animated: true, completion: nil)
     }
 }
