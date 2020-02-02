@@ -21,7 +21,8 @@ class QuizViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
+        LoaderManager.shared.showLoading()
+
     }
     
     //MARK: - Private Functions
