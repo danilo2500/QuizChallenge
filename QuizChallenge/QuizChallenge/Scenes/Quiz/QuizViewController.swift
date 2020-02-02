@@ -28,12 +28,17 @@ class QuizViewController: UIViewController {
             stackView.isHidden = true
         }
     }
-    @IBOutlet weak var questionLabel: UILabel!
+    @IBOutlet weak var questionLabel: UILabel! {
+        didSet {
+            questionLabel.font = MainFonts.largeTitle
+        }
+    }
     @IBOutlet weak var textField: UITextField!
     @IBOutlet weak var tableView: UITableView! {
         didSet {
             tableView.dataSource = self
-            
+            tableView.allowsSelection = false
+            tableView.tableFooterView = UIView()
             tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
         }
         
@@ -75,7 +80,7 @@ class QuizViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        addTapGestureRecognizerToDismissKeyboard()
         requestQuizData()
     }
     
@@ -88,20 +93,14 @@ class QuizViewController: UIViewController {
         interactor?.requestQuiz(request: request)
     }
     
-    private func showAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
-        alert.addAction(okAction)
-        present(alert, animated: true, completion: nil)
-    }
     @IBAction func textFieldDidChangeEditing(_ sender: Any) {
         guard let text = textField.text else { return }
         
         if answers.contains(text) && !correctAnswers.contains(text) {
-            correctAnswers.append(text)
+            correctAnswers.insert(text, at: 0)
             
             tableView.beginUpdates()
-            let indexPath = IndexPath(row: correctAnswers.endIndex - 1, section: 0)
+            let indexPath = IndexPath(row: 0, section: 0)
             tableView.insertRows(at: [indexPath], with: .automatic)
             tableView.endUpdates()
             
@@ -128,7 +127,7 @@ extension QuizViewController: QuizDisplayLogic {
     func displayError() {
         LoaderManager.shared.dismissLoading()
         
-        let alert = UIAlertController(title: "Error", message: "An unexpected error has occurred", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Error", message: "An unexpected error has occurred while fetching data.", preferredStyle: .alert)
         
         let tryAgainAction = UIAlertAction(title: "Try Again", style: .default) { [weak self] _ in
             guard let self = self else { return }

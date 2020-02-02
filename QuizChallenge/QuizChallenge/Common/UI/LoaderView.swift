@@ -27,7 +27,7 @@ class LoaderView: UIView {
         
         label.text = "Loading..."
         label.textColor = MainColors.snow
-        label.font = .systemFont(ofSize: 17, weight: .bold)
+        label.font = MainFonts.button
         
         return label
     }()
@@ -51,9 +51,15 @@ class LoaderView: UIView {
         return view
     }()
     
-    //MARK: - Life Cycle
+    //MARK: - Object LifeCycle
     
-    override func didMoveToSuperview() {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
         setupUI()
     }
     

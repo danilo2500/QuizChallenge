@@ -38,7 +38,7 @@
                             </constraints>
                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                            <textInputTraits key="textInputTraits"/>
+                            <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" smartDashesType="no"/>
                             <connections>
                                 <action selector="textFieldDidChangeEditing:" destination="-1" eventType="editingChanged" id="Th2-LN-UAc"/>
                             </connections>
