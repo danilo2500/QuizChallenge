@@ -11,6 +11,7 @@
             <connections>
                 <outlet property="questionLabel" destination="9kM-sV-dhG" id="HVs-hz-poR"/>
                 <outlet property="scoreView" destination="xf8-HQ-gfK" id="5kl-fP-A9l"/>
+                <outlet property="scoreViewBottomConstraint" destination="ouk-7L-fbm" id="nng-nO-KUU"/>
                 <outlet property="stackView" destination="Z1l-Hs-mQR" id="nOl-Vx-lPX"/>
                 <outlet property="tableView" destination="Ma6-pD-rDk" id="3jw-xo-C5g"/>
                 <outlet property="textField" destination="b7W-WS-7TO" id="N4N-hb-vCa"/>
@@ -39,7 +40,7 @@
                             </constraints>
                             <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                            <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" smartDashesType="no"/>
+                            <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no"/>
                             <connections>
                                 <action selector="textFieldDidChangeEditing:" destination="-1" eventType="editingChanged" id="Th2-LN-UAc"/>
                             </connections>

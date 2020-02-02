@@ -17,8 +17,7 @@ class ScoreView: UIView {
     
     weak var delegate: ScoreViewDelegate?
     
-//    var maximumTime = TimeInterval(60*5)
-    var maximumTime = TimeInterval(1    )
+    var maximumTime = TimeInterval(60*5)
     
     //MARK: - Private Variables
     

@@ -53,6 +53,7 @@ class QuizViewController: UIViewController {
             scoreView.delegate = self
         }
     }
+    @IBOutlet weak var scoreViewBottomConstraint: NSLayoutConstraint!
     
     //MARK: - Private Variables
     
@@ -91,32 +92,37 @@ class QuizViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         addTapGestureRecognizerToDismissKeyboard()
+        registerForKeyboardNotifications()
         requestQuizData()
     }
     
     //MARK: - Private Functions
+    
+    func registerForKeyboardNotifications() {
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeState(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeState(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChangeState(notification:)), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        
+    }
+    
+    @objc private func keyboardWillChangeState(notification: NSNotification) {
+        let keyboardUserInfo = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue
+        guard let keyboardHeight = keyboardUserInfo?.cgRectValue.height else { return }
+        
+//        UIView.animate(withDuration: 0.3) {
+            if notification.name == UIResponder.keyboardWillShowNotification || notification.name == UIResponder.keyboardWillChangeFrameNotification {
+                self.scoreViewBottomConstraint.constant = keyboardHeight
+            } else {
+                self.scoreViewBottomConstraint.constant = 0
+            }
+//        }
+    }
     
     private func requestQuizData() {
         LoaderManager.shared.showLoading()
         
         let request = Quiz.RequestQuiz.Request()
         interactor?.requestQuiz(request: request)
-    }
-    
-    @IBAction func textFieldDidChangeEditing(_ sender: Any) {
-        guard let text = textField.text else { return }
-        
-        if answers.contains(text) && !correctAnswers.contains(text) {
-            correctAnswers.insert(text, at: 0)
-            
-            tableView.beginUpdates()
-            let indexPath = IndexPath(row: 0, section: 0)
-            tableView.insertRows(at: [indexPath], with: .automatic)
-            tableView.endUpdates()
-            
-            textField.text = nil
-            updateScore()
-        }
     }
     
     private func updateScore() {
@@ -133,6 +139,24 @@ class QuizViewController: UIViewController {
         textField.isEnabled = true
         tableView.reloadData()
         scoreView.startTimer()
+    }
+    
+    //MARK: - IBActions
+    
+    @IBAction func textFieldDidChangeEditing(_ sender: Any) {
+        guard let text = textField.text else { return }
+        
+        if answers.contains(text) && !correctAnswers.contains(text) {
+            correctAnswers.insert(text, at: 0)
+            
+            tableView.beginUpdates()
+            let indexPath = IndexPath(row: 0, section: 0)
+            tableView.insertRows(at: [indexPath], with: .automatic)
+            tableView.endUpdates()
+            
+            textField.text = nil
+            updateScore()
+        }
     }
 }
 
@@ -213,6 +237,8 @@ extension QuizViewController: ScoreViewDelegate {
     }
     
     func scoreView(_ scoreView: ScoreView, didTapButton button: UIButton) {
+        textField.isEnabled = true
+        textField.becomeFirstResponder()
         scoreView.startTimer()
     }
 }
