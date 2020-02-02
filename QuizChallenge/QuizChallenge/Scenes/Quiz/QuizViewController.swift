@@ -18,6 +18,9 @@ class QuizViewController: UIViewController {
     var interactor: QuizBusinessLogic?
     var router: (NSObjectProtocol & QuizRoutingLogic & QuizDataPassing)?
     
+    //MARK: - Constants
+    let cellIdentifier = String(describing: UITableViewCell.self)
+    
     //MARK: - Outlets
     
     @IBOutlet weak var stackView: UIStackView! {
@@ -27,11 +30,19 @@ class QuizViewController: UIViewController {
     }
     @IBOutlet weak var questionLabel: UILabel!
     @IBOutlet weak var textField: UITextField!
-    @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var tableView: UITableView! {
+        didSet {
+            tableView.dataSource = self
+            
+            tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellIdentifier)
+        }
+        
+    }
     
     //MARK: - Private Variables
     
     private var answers: [String] = []
+    private var correctAnswers: [String] = []
     
     // MARK: Object lifecycle
     
@@ -84,8 +95,21 @@ class QuizViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
     @IBAction func textFieldDidChangeEditing(_ sender: Any) {
+        guard let text = textField.text else { return }
         
+        if answers.contains(text) && !correctAnswers.contains(text) {
+            correctAnswers.append(text)
+            
+            tableView.beginUpdates()
+            let indexPath = IndexPath(row: correctAnswers.endIndex - 1, section: 0)
+            tableView.insertRows(at: [indexPath], with: .automatic)
+            tableView.endUpdates()
+            
+            textField.text = nil
+        }
     }
+    
+    
 }
 
 //MARK: - Display Logic
@@ -113,5 +137,21 @@ extension QuizViewController: QuizDisplayLogic {
         alert.addAction(tryAgainAction)
         
         present(alert, animated: true, completion: nil)
+    }
+}
+
+//MARK: - TableView Delegate
+
+extension QuizViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return correctAnswers.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath)
+        
+        cell.textLabel?.text = correctAnswers[indexPath.row]
+        
+        return cell
     }
 }
