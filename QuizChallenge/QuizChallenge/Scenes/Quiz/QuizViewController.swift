@@ -183,9 +183,6 @@ class QuizViewController: UIViewController {
             tableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
             tableView.endUpdates()
             
-            tableView.estimatedRowHeight = 85.0
-            tableView.rowHeight = UITableView.automaticDimension
-            
             textField.text = nil
             scoreView.currentPoints = correctAnswers.count
         }
